@@ -1,0 +1,79 @@
+{
+  "name": "@obinexusltd/ruby-polycall",
+  "version": "1.0.0",
+  "description": "Ruby Fiddle source binding for libpolycall 1.5",
+  "main": "index.js",
+  "type": "commonjs",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json",
+    "./lib/*": "./lib/*",
+    "./src/*": "./src/*",
+    "./generated/*": "./generated/*",
+    "./dist/*": "./dist/*",
+    "./examples/*": "./examples/*",
+    "./tests/*": "./tests/*",
+    "./scripts/*": "./scripts/*",
+    "./config": "./ruby-polycallrc",
+    "./manifest": "./polycall-binding.json",
+    "./gemspec": "./ruby-polycall.gemspec"
+  },
+  "files": [
+    "index.js",
+    "ruby-polycall.gemspec",
+    "lib/",
+    "src/",
+    "generated/",
+    "dist/",
+    "examples/",
+    "tests/",
+    "scripts/",
+    "ruby-polycallrc",
+    "polycall-binding.json",
+    "README.md",
+    "TODO.md",
+    "LICENSE"
+  ],
+  "directories": {
+    "lib": "lib",
+    "src": "src",
+    "generated": "generated",
+    "dist": "dist",
+    "example": "examples",
+    "test": "tests",
+    "scripts": "scripts"
+  },
+  "scripts": {
+    "test": "node tests/package.test.js && node tests/source.test.js && node scripts/test-ruby-if-available.js",
+    "test:package": "node tests/package.test.js",
+    "test:source": "node tests/source.test.js",
+    "test:ruby": "node scripts/test-ruby-if-available.js --required",
+    "verify": "npm test",
+    "prepack": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/obinexus/ruby-polycall.git"
+  },
+  "keywords": [
+    "libpolycall",
+    "polycall",
+    "ruby",
+    "fiddle",
+    "ffi",
+    "native"
+  ],
+  "author": "Nnamdi Michael Okpala <okpalan@protonmail.com>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18",
+    "npm": ">=9"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "bugs": {
+    "url": "https://github.com/obinexus/ruby-polycall/issues"
+  },
+  "homepage": "https://github.com/obinexus/ruby-polycall#readme"
+}

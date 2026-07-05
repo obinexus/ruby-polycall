@@ -1,0 +1,5 @@
+/build/
+/*.gem
+*.dll
+*.dylib
+*.so

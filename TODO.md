@@ -1,10 +1,13 @@
-# TODO — ruby-polycall (Ruby)
+# TODO — ruby-polycall
 
-Status: ✅ implemented reference adapter for libpolycall 1.5.0.
+Status: implemented Ruby Fiddle adapter for libpolycall 1.5.
 
-- [x] Thin adapter mapping Ruby idioms to the FFI boundary
-- [x] `ruby-polycallrc` on the shared schema
-- [x] Example / CLI entry point
-- [x] Smoke test
-- [ ] Publish to the Ruby package ecosystem (post-1.5.0)
-- [ ] Full end-to-end run verified in CI (needs Ruby toolchain + shared core)
+- [x] One-function Fiddle binding to `polycall_ffi_run_config(path, 1)`
+- [x] Raw-status and `OBINexus::Polycall::Error` APIs
+- [x] Explicit and conventional shared-library discovery
+- [x] Conventional RubyGems layout and compatibility loader
+- [x] Mock shared-library Fiddle smoke test
+- [x] Public npm metadata, updated README, and MIT license
+- [ ] Install Ruby and execute `npm run test:ruby` locally
+- [ ] Run the example against a built libpolycall shared core
+- [ ] Publish `@obinexusltd/ruby-polycall` publicly on npm
