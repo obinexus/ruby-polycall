@@ -1,5 +1,7 @@
 /build/
 /*.gem
+/Gemfile.lock
 *.dll
 *.dylib
 *.so
+*.tgz

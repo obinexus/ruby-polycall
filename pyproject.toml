@@ -1,0 +1,15 @@
+# QA descriptor for the Polycall binding matrix (read by polycall/qa/run_qa.py).
+# This repository is NOT a Python package and is not pip-installable;
+# its native manifest is ruby-polycall.gemspec (npm distribution: package.json).
+[tool.polycall.binding]
+name = "ruby-polycall"
+language = "Ruby"
+native_manifest = "ruby-polycall.gemspec"
+registry = "rubygems"
+package = "obinexus-ruby-polycall"
+abi = 1
+support = "supported"
+linux_image = "ruby:3.3 (core via build-linux-core.sh)"
+build = "gem build ruby-polycall.gemspec"
+test = "sh tests/run-real-core.sh --verbose"
+windows_test = ""

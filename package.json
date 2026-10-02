@@ -1,7 +1,7 @@
 {
   "name": "@obinexusltd/ruby-polycall",
-  "version": "1.0.0",
-  "description": "Ruby Fiddle source binding for libpolycall 1.5",
+  "version": "1.1.0",
+  "description": "Ruby Fiddle binding for the Polycall binding ABI v1 (libpolycall >= 1.1.0): config validation, RPC calls and peer nodes",
   "main": "index.js",
   "type": "commonjs",
   "exports": {
@@ -9,11 +9,9 @@
     "./package.json": "./package.json",
     "./lib/*": "./lib/*",
     "./src/*": "./src/*",
-    "./generated/*": "./generated/*",
     "./dist/*": "./dist/*",
     "./examples/*": "./examples/*",
     "./tests/*": "./tests/*",
-    "./scripts/*": "./scripts/*",
     "./config": "./ruby-polycallrc",
     "./manifest": "./polycall-binding.json",
     "./gemspec": "./ruby-polycall.gemspec"
@@ -23,11 +21,9 @@
     "ruby-polycall.gemspec",
     "lib/",
     "src/",
-    "generated/",
     "dist/",
     "examples/",
     "tests/",
-    "scripts/",
     "ruby-polycallrc",
     "polycall-binding.json",
     "README.md",
@@ -37,37 +33,32 @@
   "directories": {
     "lib": "lib",
     "src": "src",
-    "generated": "generated",
     "dist": "dist",
     "example": "examples",
-    "test": "tests",
-    "scripts": "scripts"
+    "test": "tests"
   },
   "scripts": {
-    "test": "node tests/package.test.js && node tests/source.test.js && node scripts/test-ruby-if-available.js",
+    "test": "node tests/package.test.js && sh tests/run-real-core.sh",
     "test:package": "node tests/package.test.js",
-    "test:source": "node tests/source.test.js",
-    "test:ruby": "node scripts/test-ruby-if-available.js --required",
-    "verify": "npm test",
-    "prepack": "npm test"
+    "test:ruby": "sh tests/run-real-core.sh --verbose",
+    "prepack": "node tests/package.test.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/obinexus/ruby-polycall.git"
   },
   "keywords": [
-    "libpolycall",
     "polycall",
+    "libpolycall",
     "ruby",
     "fiddle",
     "ffi",
-    "native"
+    "peer-to-peer"
   ],
   "author": "Nnamdi Michael Okpala <okpalan@protonmail.com>",
   "license": "MIT",
   "engines": {
-    "node": ">=18",
-    "npm": ">=9"
+    "node": ">=18"
   },
   "publishConfig": {
     "access": "public"

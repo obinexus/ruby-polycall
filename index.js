@@ -6,11 +6,9 @@ const path = require('node:path');
 const relativeDirectories = Object.freeze({
   lib: 'lib',
   src: 'src',
-  generated: 'generated',
   dist: 'dist',
   examples: 'examples',
-  tests: 'tests',
-  scripts: 'scripts'
+  tests: 'tests'
 });
 
 function walkFiles(root, current = root) {
@@ -66,7 +64,6 @@ module.exports = Object.freeze({
   rubyLibrary: path.join(__dirname, 'lib', 'obinexus', 'polycall.rb'),
   rubyVersion: path.join(__dirname, 'lib', 'obinexus', 'polycall', 'version.rb'),
   compatibilityLoader: path.join(__dirname, 'src', 'polycall.rb'),
-  ffiHeader: path.join(__dirname, 'generated', 'polycall', 'polycall_ffi.h'),
   gemspec: path.join(__dirname, 'ruby-polycall.gemspec'),
   config: path.join(__dirname, 'ruby-polycallrc'),
   manifest: path.join(__dirname, 'polycall-binding.json')
