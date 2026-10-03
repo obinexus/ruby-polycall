@@ -13,7 +13,7 @@ const manifest = require('../polycall-binding.json');
 
 const repo = 'https://github.com/obinexus/ruby-polycall';
 
-assert.equal(metadata.name, '@obinexusltd/ruby-polycall');
+assert.equal(metadata.name, 'ruby-polycall');
 assert.equal(metadata.license, 'MIT');
 assert.equal(metadata.publishConfig.access, 'public');
 assert.equal(metadata.repository.url, `git+${repo}.git`);

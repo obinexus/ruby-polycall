@@ -60,10 +60,10 @@ tar -tzf "$PACKDIR/$TARBALL" | sed 's/^/  /'
 NPROJ="$POLYCALL_TEST_TMP/npm-project"
 mkdir -p "$NPROJ"
 (cd "$NPROJ" && npm init -y >/dev/null && npm install --no-audit --no-fund "$PACKDIR/$TARBALL") || fail "npm install"
-INSTALLED="$NPROJ/node_modules/@obinexusltd/ruby-polycall"
+INSTALLED="$NPROJ/node_modules/ruby-polycall"
 (cd "$NPROJ" && node -e '
-const b = require("@obinexusltd/ruby-polycall");
-if (b.packageName !== "@obinexusltd/ruby-polycall") process.exit(1);
+const b = require("ruby-polycall");
+if (b.packageName !== "ruby-polycall") process.exit(1);
 for (const f of [b.rubyLibrary, b.gemspec, b.config]) require("fs").accessSync(f);
 console.log("npm entry point:", b.rubyLibrary);') || fail "npm entry point"
 unset GEM_HOME GEM_PATH

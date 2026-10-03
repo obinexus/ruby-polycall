@@ -4,7 +4,7 @@ Ruby binding for the [Polycall](https://github.com/obinexus/polycall) core's
 **binding ABI v1** (`polycall.h`, libpolycall >= 1.1.0), through Ruby's
 standard `Fiddle`: configuration validation, `polycall_rpc` calls and
 peer-to-peer nodes. Gem `obinexus-ruby-polycall`; npm distribution
-`@obinexusltd/ruby-polycall` (neither is published yet).
+`ruby-polycall` (neither is published yet).
 
 The binding declares the exact C signatures from `polycall.h`
 (`OBINexus::Polycall::SIGNATURES`) and resolves every symbol when the library

@@ -10,4 +10,4 @@ Status: Ruby Fiddle binding over the Polycall binding ABI v1 (libpolycall >= 1.1
 - [x] Gem built, installed into a clean GEM_HOME and tested outside the checkout
       (Linux, ruby:3.3) incl. interop with the C CLI peer and the PHP binding
 - [ ] Windows run (no Ruby on the QA host)
-- [ ] Publish `obinexus-ruby-polycall` / `@obinexusltd/ruby-polycall`
+- [ ] Publish `obinexus-ruby-polycall` / `ruby-polycall`

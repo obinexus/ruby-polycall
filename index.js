@@ -57,7 +57,7 @@ function resolve(directoryName, ...segments) {
 }
 
 module.exports = Object.freeze({
-  packageName: '@obinexusltd/ruby-polycall',
+  packageName: 'ruby-polycall',
   projectRoot: __dirname,
   directories,
   resolve,
