@@ -24,5 +24,18 @@ export GEM_HOME
 gem install --local --no-document "$GEMFILE" || { echo "FAIL: gem install into a clean GEM_HOME"; exit 1; }
 mkdir -p "$POLYCALL_TEST_TMP/outside"
 cd "$POLYCALL_TEST_TMP/outside" || exit 1
+# Every test needs the real core prepared above, so a skipped test (or an
+# empty run) here means the setup is broken: it fails the run.
 POLYCALL_TEST_DIR="$REPO/tests/real_core" ruby \
-  -e 'Dir[File.join(ENV.fetch("POLYCALL_TEST_DIR"), "test_*.rb")].sort.each { |f| require f }' -- "$@"
+  -e 'Dir[File.join(ENV.fetch("POLYCALL_TEST_DIR"), "test_*.rb")].sort.each { |f| require f }' -- "$@" \
+  >"$POLYCALL_TEST_TMP/minitest.out" 2>&1
+rc=$?
+cat "$POLYCALL_TEST_TMP/minitest.out"
+summary=$(grep -E '^[0-9]+ runs, [0-9]+ assertions, [0-9]+ failures, [0-9]+ errors, [0-9]+ skips' "$POLYCALL_TEST_TMP/minitest.out" | tail -1)
+[ -n "$summary" ] || { echo "FAIL: no minitest summary"; exit 1; }
+[ "${rc:-1}" = 0 ] || exit 1
+case "$summary" in
+  "0 runs"*) echo "FAIL: zero tests ran"; exit 1 ;;
+  *", 0 skips") exit 0 ;;
+  *) echo "FAIL: skipped tests in the real-core run ($summary)"; exit 1 ;;
+esac
