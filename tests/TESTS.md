@@ -29,4 +29,8 @@
 - `interop/exchange.rb` — cross-language exchange script (pairs with
   php-polycall's `tests/interop/exchange.php`).
 - `fixtures/fake_polycall.c` — loader-failure fixture only (old core, ABI 2).
+- `run-package.sh` — `gem build`, `gem install` into a clean `GEM_HOME`, the
+  installed gem used from outside the checkout (and its shipped examples
+  run) against the real core; `npm pack`, the tarball installed into a clean
+  npm project, the JS entry point loaded and the packaged Ruby examples run.
 - `package.test.js` — npm / gemspec / binding-manifest metadata (no Ruby).
