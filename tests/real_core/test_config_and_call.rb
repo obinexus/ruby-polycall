@@ -96,6 +96,21 @@ class TestCall < Minitest::Test
     assert_status(S::E_INVALID_ARGUMENT) { runtime.call("no-port", "debug", "echo", nil, timeout_ms: 1000) }
   end
 
+  def test_against_a_polycall_daemon
+    ep = env!(self, "POLYCALL_TEST_DAEMON_ENDPOINT")
+    assert_equal '{"item_id":"widget-a","quantity":42,"in_stock":true}',
+                 runtime.call(ep, "inventory", "get", '{"item_id":"widget-a"}', timeout_ms: 2000)
+    assert_status(S::E_NOT_FOUND) { runtime.call(ep, "inventory", "teleport", "{}", timeout_ms: 2000) }
+    e = assert_status(S::E_REMOTE) { runtime.call(ep, "inventory", "get", '{"item_id":"nope"}', timeout_ms: 2000) }
+    assert_includes e.output, "item.unknown"
+    assert_status(S::E_TIMEOUT) { runtime.call(ep, "debug", "sleep", '{"ms":2000}', timeout_ms: 150) }
+    dir = File.join(env!(self, "POLYCALL_TEST_TMP"), "daemon")
+    out, st = Open3.capture2e(env!(self, "POLYCALL_CLI"), "daemon", "status", "--state-dir", File.join(dir, "state"),
+                              File.join(dir, "Polycallfile"))
+    assert st.success?, out
+    assert_includes out, ep
+  end
+
   def test_no_runtime
     assert_status(S::E_TRANSPORT) { runtime.call("127.0.0.1:1", "inventory", "get", "{}", timeout_ms: 1000) }
   end
