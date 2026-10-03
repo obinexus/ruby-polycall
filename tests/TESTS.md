@@ -21,6 +21,11 @@
 - `real_core/test_interop.rb` — Ruby node <-> `polycall peer serve` C node, both
   directions, CLI `register` / `health` against the Ruby node, `call` parity
   with the CLI client.
+- `real_core/test_boundaries.rb` — timeouts outside `uint32` and negative
+  capacities rejected (not wrapped), capacity clamping at 1 MiB, `int32`
+  handles, a non-ASCII configuration path, the platform-name loader path
+  (found / not found via `LD_LIBRARY_PATH`), and the GVL: other Ruby threads
+  run while `recv` / `call` block in the core.
 - `interop/exchange.rb` — cross-language exchange script (pairs with
   php-polycall's `tests/interop/exchange.php`).
 - `fixtures/fake_polycall.c` — loader-failure fixture only (old core, ABI 2).

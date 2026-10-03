@@ -64,12 +64,18 @@ module OBINexus
 
       def initialize(message, status, status_text: nil, detail: "", output: "")
         @status = Integer(status)
-        @status_text = status_text || Status.name_of(@status)
-        @detail = detail.to_s
-        @output = output.to_s
-        text = "#{message}: #{@status_text} (status=#{@status})"
+        @status_text = Error.utf8(status_text || Status.name_of(@status))
+        @detail = Error.utf8(detail)
+        @output = Error.utf8(output)
+        text = "#{Error.utf8(message)}: #{@status_text} (status=#{@status})"
         text += ": #{@detail}" unless @detail.empty?
         super(text)
+      end
+
+      # @api private The library's text is UTF-8; Fiddle hands it over as
+      # ASCII-8BIT, which cannot be combined with a non-ASCII UTF-8 path.
+      def self.utf8(value)
+        value.to_s.dup.force_encoding(Encoding::UTF_8).scrub
       end
 
       # "POLYCALL_E_TIMEOUT" -- the symbolic part of polycall_strerror().
@@ -190,14 +196,14 @@ module OBINexus
       end
 
       def strerror(status)
-        fn(:polycall_strerror).call(status).to_s
+        fn(:polycall_strerror).call(status).to_s.force_encoding(Encoding::UTF_8)
       end
 
       # Detail of the most recent failure on this thread ("" after success).
       def last_error
         buf = Fiddle::Pointer.malloc(1024, Fiddle::RUBY_FREE)
         fn(:polycall_last_error).call(buf, 1024)
-        buf.to_s
+        buf.to_s.force_encoding(Encoding::UTF_8)
       end
 
       # Validate one configuration file with the core grammar; returns the
@@ -230,7 +236,7 @@ module OBINexus
         out = Fiddle::Pointer.malloc(CALL_MAX_OUTPUT, Fiddle::RUBY_FREE)
         len = Fiddle::Pointer.malloc(Fiddle::SIZEOF_SIZE_T, Fiddle::RUBY_FREE)
         status = fn(:polycall_call).call(cstr(endpoint), cstr(service), cstr(operation),
-                                         input_json.nil? ? nil : cstr(input_json), timeout_ms,
+                                         input_json.nil? ? nil : cstr(input_json), uint32(timeout_ms, "timeout_ms"),
                                          out, CALL_MAX_OUTPUT, len)
         text = status == Status::E_TOO_LARGE ? "" : out.to_s.force_encoding(Encoding::UTF_8)
         fail!(status, "call #{service}.#{operation} at #{endpoint}", output: text) unless status.zero?
@@ -261,6 +267,18 @@ module OBINexus
         raise Error.new("argument contains NUL", Status::E_INVALID_ARGUMENT) if s.include?("\0")
 
         s.b + "\0"
+      end
+
+      # @api private A uint32_t argument (timeouts in ms). Fiddle would
+      # silently wrap a negative Integer (-1 became WAIT_FOREVER), so the
+      # range is checked here.
+      def uint32(value, what)
+        unless value.is_a?(Integer) && value.between?(0, WAIT_FOREVER)
+          raise Error.new(what, Status::E_INVALID_ARGUMENT,
+                          detail: "#{what} must be an Integer in 0..#{WAIT_FOREVER}, got #{value.inspect}")
+        end
+
+        value
       end
 
       private
@@ -304,6 +322,10 @@ module OBINexus
       def initialize(runtime, handle)
         @rt = runtime
         @handle = Integer(handle)
+        unless @handle.between?(-0x8000_0000, 0x7FFF_FFFF)
+          raise Error.new("peer handle", Status::E_INVALID_HANDLE,
+                          detail: "#{@handle} is outside the int32 polycall_peer_t range")
+        end
         @closed = false
       end
 
@@ -348,7 +370,8 @@ module OBINexus
       end
 
       def ping(peer, timeout_ms: 2000)
-        check(@rt.fn(:polycall_peer_ping).call(@handle, @rt.cstr(peer), timeout_ms), "peer ping #{peer.inspect}")
+        check(@rt.fn(:polycall_peer_ping).call(@handle, @rt.cstr(peer), @rt.uint32(timeout_ms, "timeout_ms")),
+              "peer ping #{peer.inspect}")
         true
       end
 
@@ -358,7 +381,7 @@ module OBINexus
         bytes = payload.to_s.b
         status = @rt.fn(:polycall_peer_send).call(
           @handle, @rt.cstr(peer), bytes.empty? ? nil : bytes, bytes.bytesize,
-          message_id.nil? || message_id.empty? ? nil : @rt.cstr(message_id), timeout_ms
+          message_id.nil? || message_id.empty? ? nil : @rt.cstr(message_id), @rt.uint32(timeout_ms, "timeout_ms")
         )
         check(status, "peer send to #{peer.inspect}")
         true
@@ -368,17 +391,26 @@ module OBINexus
       # Take the oldest message. timeout_ms 0 = poll, WAIT_FOREVER = until a
       # message, #cancel or #close. A too-small capacity raises
       # POLYCALL_E_TOO_LARGE (needed size in #output) and leaves it queued.
+      # capacity must be >= 0; no message exceeds PEER_MAX_PAYLOAD, so a
+      # larger capacity allocates (and passes) only PEER_MAX_PAYLOAD bytes.
       def recv(timeout_ms: WAIT_FOREVER, capacity: PEER_MAX_PAYLOAD)
+        timeout = @rt.uint32(timeout_ms, "timeout_ms")
+        unless capacity.is_a?(Integer) && capacity >= 0
+          raise Error.new("peer recv", Status::E_INVALID_ARGUMENT,
+                          detail: "capacity must be an Integer >= 0, got #{capacity.inspect}")
+        end
+
+        cap = [capacity, PEER_MAX_PAYLOAD].min
         sender = Fiddle::Pointer.malloc(PEER_ID_MAX, Fiddle::RUBY_FREE)
         mid = Fiddle::Pointer.malloc(MESSAGE_ID_MAX, Fiddle::RUBY_FREE)
-        buf = Fiddle::Pointer.malloc([capacity, 1].max, Fiddle::RUBY_FREE)
+        buf = Fiddle::Pointer.malloc([cap, 1].max, Fiddle::RUBY_FREE)
         len = Fiddle::Pointer.malloc(Fiddle::SIZEOF_SIZE_T, Fiddle::RUBY_FREE)
-        status = @rt.fn(:polycall_peer_recv).call(@handle, timeout_ms, sender, PEER_ID_MAX, mid, MESSAGE_ID_MAX,
-                                                  buf, capacity, len)
+        status = @rt.fn(:polycall_peer_recv).call(@handle, timeout, sender, PEER_ID_MAX, mid, MESSAGE_ID_MAX,
+                                                  buf, cap, len)
         n = size_at(len)
         if status == Status::E_TOO_LARGE
           raise Error.new("peer recv", status, status_text: @rt.strerror(status),
-                                               detail: "message needs #{n} bytes; buffer has #{capacity} " \
+                                               detail: "message needs #{n} bytes; buffer has #{cap} " \
                                                        "(message stays queued)",
                                                output: n.to_s)
         end

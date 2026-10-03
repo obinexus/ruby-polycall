@@ -17,6 +17,11 @@ blocked in one thread can be woken by `#cancel` or `#close` from another.
 - the Polycall core >= 1.1.0 installed (`libpolycall.so.1`, `polycall.dll` /
   `libpolycall.dll`, or `libpolycall.1.dylib`)
 
+QA status: tested on Linux x86_64 (Docker `ruby:3.3`) against the real core.
+The Windows (`polycall.dll` / `libpolycall.dll`) and macOS loader paths are
+implemented but have not been run in QA yet (no Ruby on the Windows QA host,
+no macOS host).
+
 ## Loading the library
 
 `OBINexus::Polycall::Runtime.new` tries, in order: `library_path:`, then
@@ -63,6 +68,19 @@ object of a failed `#call`. `recv(capacity:)` too small raises
 `POLYCALL_E_TOO_LARGE`, reports the needed size in `#output`, and leaves the
 message queued. `Peer#send` (aliased `#deliver`) shadows `Object#send` like
 `BasicSocket#send` does; use `__send__` for reflection.
+
+Arguments are checked before they reach C: `timeout_ms:` must be an Integer
+in `0..WAIT_FOREVER` (Fiddle would silently wrap `-1` to "wait forever"),
+`capacity:` an Integer `>= 0` (a capacity above the 1 MiB message limit is
+clamped, never allocated), handles must fit `int32`, and text arguments
+must not contain NUL; violations raise `Error` with
+`POLYCALL_E_INVALID_ARGUMENT` / `POLYCALL_E_INVALID_HANDLE`.
+
+Threads: other Ruby threads keep running while one thread is blocked in
+`recv`, `call` or `send` (tested). A thread blocked in the core is not
+interruptible by `Thread#raise`, `Thread#kill` or a signal until the call
+returns, so stop a waiting receiver with `#cancel` or `#close`, or use a
+bounded `timeout_ms:`.
 
 The original `src/polycall.rb` loader still exposes `Polycall` as an alias
 for `OBINexus::Polycall`.
